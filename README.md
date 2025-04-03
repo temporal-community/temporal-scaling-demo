@@ -89,7 +89,8 @@ Key points about the scaling behavior:
 
 - The main worker deployment is configured to scale based on the combined backlog of two task queues: "orders" and "shipment"
 - The ScaledObject for the main worker uses a formula (`orders + shipment`) to aggregate the backlog metrics from both queues
-- The billing worker typically won't scale during the demo as it doesn't get loaded as quickly as the main worker
+- Both the main-worker and billing-worker deployments are configured to scale with KEDA
+- The billing worker typically won't scale during the demo as it doesn't get loaded as quickly as the main worker, but it will scale if its task queue backlog increases
 - Each ScaledObject defines minimum and maximum replica counts, as well as scaling behavior like stabilization windows and scaling policies
 
 You can examine the ScaledObjects with:
@@ -143,4 +144,4 @@ The demo consists of multiple components:
 - KEDA for auto-scaling workers based on task queue metrics
 - Prometheus and Grafana for monitoring
 
-The main-worker deployment is configured to scale automatically with KEDA based on the backlog in the Temporal task queues.
+Both the main-worker and billing-worker deployments are configured to scale automatically with KEDA based on the backlog in their respective Temporal task queues.
