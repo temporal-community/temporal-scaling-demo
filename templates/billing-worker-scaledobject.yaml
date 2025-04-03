@@ -5,6 +5,8 @@ metadata:
   name: {{ include "temporal-scaling-demo.fullname" . }}-billing-worker
   annotations:
     "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/resource-policy": keep
   labels:
     {{- include "temporal-scaling-demo.labels" (list . "billing-worker-scaler") | nindent 4 }}
 spec:
