@@ -1,0 +1,113 @@
+# Default values for temporal-scaling-demo
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  pullPolicy: Always
+
+main:
+  worker:
+    replicaCount: 1
+    image:
+      repository: "ghcr.io/temporalio/reference-app-orders-go-worker"
+      tag: "latest"
+    resources:
+      limits:
+        cpu: "100m"
+        memory: "128Mi"
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+
+  api:
+    replicaCount: 1
+    image:
+      repository: "ghcr.io/temporalio/reference-app-orders-go-api"
+      tag: "latest"
+    resources:
+      limits:
+        cpu: "100m"
+        memory: "128Mi"
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+
+billing:
+  worker:
+    replicaCount: 1
+    image:
+      repository: "ghcr.io/temporalio/reference-app-orders-go-worker"
+      tag: "latest"
+    resources:
+      limits:
+        cpu: "100m"
+        memory: "128Mi"
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+
+  api:
+    replicaCount: 1
+    image:
+      repository: "ghcr.io/temporalio/reference-app-orders-go-api"
+      tag: "latest"
+    resources:
+      limits:
+        cpu: "100m"
+        memory: "128Mi"
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+
+web:
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/temporalio/reference-app-orders-web"
+    tag: "latest"
+  resources:
+    limits:
+      cpu: "100m"
+      memory: "128Mi"
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+
+temporal:
+  server:
+    replicaCount: 1
+    config:
+      namespaces:
+        create: true
+        namespace:
+          - name: default
+    metrics:
+      serviceMonitor:
+        enabled: true
+        interval: 10s
+  cassandra:
+    config:
+      cluster_size: 1
+  elasticsearch:
+    replicas: 1
+  prometheus:
+    enabled: false
+  grafana:
+    enabled: false
+
+kube-prometheus-stack:
+  enabled: true
+  # By default, kube-prometheus-stack will only look at ServiceMonitors from the same helm release.
+  # Adjust that here so that it sees temporal and our application's ServiceMonitors.
+  prometheus:
+    prometheusSpec:
+      podMonitorSelectorNilUsesHelmValues: false
+      serviceMonitorSelectorNilUsesHelmValues: false
+
+keda:
+  enabled: true
+  image:
+    keda:
+      tag: "main" # Need to use this until they do a release with the Temporal scaler

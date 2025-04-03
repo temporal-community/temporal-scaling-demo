@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "temporal-scaling-demo.fullname" . }}-web
+  labels:
+    {{- include "temporal-scaling-demo.labels" (list . "web") | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "temporal-scaling-demo.selectorLabels" (list . "web") | nindent 4 }}

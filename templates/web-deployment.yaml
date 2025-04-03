@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "temporal-scaling-demo.fullname" . }}-web
+  labels:
+    {{- include "temporal-scaling-demo.labels" (list . "web") | nindent 4 }}
+spec:
+  replicas: {{ .Values.web.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "temporal-scaling-demo.selectorLabels" (list . "web") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "temporal-scaling-demo.labels" (list . "web") | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}-web
+          image: "{{ .Values.web.image.repository }}:{{ .Values.web.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: ORIGIN
+              value: http://localhost:3000
+            - name: BILLING_API_URL
+              value: "http://{{ include "temporal-scaling-demo.fullname" . }}-billing-api:8081"
+            - name: FRAUD_API_URL
+              value: "http://{{ include "temporal-scaling-demo.fullname" . }}-billing-api:8084"
+            - name: ORDER_API_URL
+              value: "http://{{ include "temporal-scaling-demo.fullname" . }}-main-api:8082"
+            - name: SHIPMENT_API_URL
+              value: "http://{{ include "temporal-scaling-demo.fullname" . }}-main-api:8083"
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.web.resources | nindent 12 }}

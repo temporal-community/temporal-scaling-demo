@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "temporal-scaling-demo.fullname" . }}-billing-api
+  labels:
+    {{- include "temporal-scaling-demo.labels" (list . "billing-api") | nindent 4 }}
+spec:
+  replicas: {{ .Values.billing.api.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "temporal-scaling-demo.selectorLabels" (list . "billing-api") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "temporal-scaling-demo.labels" (list . "billing-api") | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}-billing-api
+          image: "{{ .Values.billing.api.image.repository }}:{{ .Values.billing.api.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            {{- if .Values.secretKey }}
+            - "-k"
+            - {{ .Values.secretKey }}
+            {{- end }}
+            - "-s"
+            - "billing,fraud"
+          env:
+            - name: BIND_ON_IP
+              value: "0.0.0.0"
+            - name: BILLING_API_PORT
+              value: "8081"
+            - name: FRAUD_API_PORT
+              value: "8084"
+            - name: TEMPORAL_ADDRESS
+              value: "{{ include "temporal.componentname" (list .Subcharts.temporal "frontend") }}:7233"
+            - name: TEMPORAL_METRICS_ENDPOINT
+              value: "0.0.0.0:9090"
+          ports:
+            - name: http-billing
+              containerPort: 8081
+              protocol: TCP
+            - name: http-fraud
+              containerPort: 8084
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.billing.api.resources | nindent 12 }}
