@@ -75,29 +75,118 @@ web:
       cpu: "100m"
       memory: "128Mi"
 
+postgresql:
+  fullnameOverride: "temporal-postgresql"
+  auth:
+    username: temporal
+    password: secret
+  primary:
+    extendedConfiguration: |
+      # DB Version: 16
+      # OS Type: linux
+      # DB Type: oltp
+      # Total Memory (RAM): 512 MB
+      # CPUs num: 1
+      # Connections num: 150
+      # Data Storage: ssd
+
+      max_connections = 60
+      shared_buffers = 48MB
+      work_mem = 256kB
+      maintenance_work_mem = 16MB
+      wal_buffers = 2MB
+      effective_cache_size = 128MB
+      checkpoint_completion_target = 0.9
+      default_statistics_target = 100
+      random_page_cost = 1.1
+      effective_io_concurrency = 200
+      huge_pages = off
+      min_wal_size = 1GB
+      max_wal_size = 4GB
+    resources:
+      limits:
+        cpu: "1"
+        memory: "512Mi"
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      interval: 10s
+
 temporal:
+  fullnameOverride: "temporal"
   server:
     replicaCount: 1
     config:
+      numHistoryShards: 128
       namespaces:
         create: true
         namespace:
           - name: default
+      persistence:
+        default:
+          driver: sql
+          sql:
+            driver: postgres12
+            host: "temporal-postgresql"
+            port: 5432
+            user: temporal
+            password: secret
+        visibility:
+          driver: sql
+          sql:
+            driver: postgres12
+            host: "temporal-postgresql"
+            port: 5432
+            user: temporal
+            password: secret
+    dynamicConfig:
+      history.cacheMaxSize:
+      - value: 128
+      history.eventCacheMaxSize:
+      - value: 128
     metrics:
       serviceMonitor:
         enabled: true
         interval: 10s
+    frontend:
+      resources:
+        requests:
+          cpu: 1
+          memory: "256Mi"
+    history:
+      additionalEnv:
+        - name: GOMAXPROCS
+          value: "2"
+      resources:
+        requests:
+          cpu: 2
+          memory: "1G"
+    matching:
+      resources:
+        requests:
+          cpu: 1
+          memory: "256Mi"
+    worker:
+      resources:
+        requests:
+          cpu: 1
+          memory: "256Mi"
+  mysql:
+    enabled: false
+  postgresql:
+    enabled: true
   cassandra:
-    config:
-      cluster_size: 1
+    enabled: false
   elasticsearch:
-    replicas: 1
+    enabled: false
   prometheus:
     enabled: false
   grafana:
     enabled: false
 
 kube-prometheus-stack:
+  fullnameOverride: "kube-prom"
   enabled: true
   # By default, kube-prometheus-stack will only look at ServiceMonitors from the same helm release.
   # Adjust that here so that it sees temporal and our application's ServiceMonitors.

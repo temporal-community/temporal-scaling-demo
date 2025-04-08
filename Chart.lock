@@ -2,6 +2,9 @@ dependencies:
 - name: common
   repository: oci://registry-1.docker.io/bitnamicharts
   version: 2.30.0
+- name: postgresql
+  repository: oci://registry-1.docker.io/bitnamicharts
+  version: 16.6.2
 - name: temporal
   repository: https://go.temporal.io/helm-charts
   version: 0.60.0
@@ -11,5 +14,5 @@ dependencies:
 - name: kube-prometheus-stack
   repository: https://prometheus-community.github.io/helm-charts
   version: 70.4.1
-digest: sha256:8c53be324f5de3cb6b01941bb9d8620b900bf66c7ff43118c6edd26ebe6310ee
-generated: "2025-04-03T14:15:06.943837+01:00"
+digest: sha256:58fa1efccc47c03d3f9d6e98abd76d092e368789b7da52e46db15fe91fff289c
+generated: "2025-04-08T13:58:16.746975+01:00"
