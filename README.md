@@ -37,7 +37,8 @@ The Helm chart bundles all necessary components, so no additional tools or depen
 
 3. Install the Helm chart:
    ```
-   helm install temporal-demo . -n scaling-demo
+   helm package --dependency-update .
+   helm install -n scaling-demo temporal-demo ./temporal-scaling-demo-0.1.0.tgz
    ```
 
 4. Wait for all pods to become ready (this may take several minutes as Cassandra and Elasticsearch require time to initialize):
