@@ -51,7 +51,7 @@ The Helm chart bundles all necessary components, so no additional tools or depen
 Once all pods are running, access the Web UI by port-forwarding to the web service:
 
 ```
-kubectl port-forward svc/temporal-demo-temporal-scaling-demo-web 8080:80 -n scaling-demo
+kubectl port-forward svc/demo-web 8080:80 -n scaling-demo
 ```
 
 Then open your browser and navigate to `http://localhost:8080`
@@ -98,7 +98,7 @@ You can examine the ScaledObjects with:
 
 ```
 kubectl get scaledobjects -n scaling-demo
-kubectl describe scaledobject temporal-demo-main-worker -n scaling-demo
+kubectl describe scaledobject demo-main-worker -n scaling-demo
 ```
 
 You can find the ScaledObject template definitions in the repository:
