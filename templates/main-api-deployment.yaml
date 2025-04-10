@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "temporal-scaling-demo.fullname" . }}-main-api
+  labels:
+    {{- include "temporal-scaling-demo.labels" (list . "main-api") | nindent 4 }}
+spec:
+  replicas: {{ .Values.main.api.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "temporal-scaling-demo.selectorLabels" (list . "main-api") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "temporal-scaling-demo.labels" (list . "main-api") | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}-main-api
+          image: "{{ .Values.main.api.image.repository }}:{{ .Values.main.api.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            {{- if .Values.secretKey }}
+            - "-k"
+            - {{ .Values.secretKey }}
+            {{- end }}
+            - "-s"
+            - "order,shipment"
+          env:
+            - name: BIND_ON_IP
+              value: "0.0.0.0"
+            - name: ORDER_API_PORT
+              value: "8082"
+            - name: SHIPMENT_API_PORT
+              value: "8083"
+            - name: TEMPORAL_ADDRESS
+              value: "{{ include "temporal.componentname" (list .Subcharts.temporal "frontend") }}:7233"
+            - name: TEMPORAL_METRICS_ENDPOINT
+              value: "0.0.0.0:9090"
+          ports:
+            - name: order-api
+              containerPort: 8082
+              protocol: TCP
+            - name: shipment-api
+              containerPort: 8083
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.main.api.resources | nindent 12 }}

@@ -1,0 +1,39 @@
+{{- if .Values.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ include "temporal-scaling-demo.fullname" . }}-billing-worker
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+    "helm.sh/resource-policy": keep
+  labels:
+    {{- include "temporal-scaling-demo.labels" (list . "billing-worker-scaler") | nindent 4 }}
+spec:
+  scaleTargetRef:
+    name: {{ include "temporal-scaling-demo.fullname" . }}-billing-worker
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 30
+          policies:
+          - type: Pods
+            value: 1
+            periodSeconds: 60
+        scaleDown:
+          stabilizationWindowSeconds: 60
+          policies:
+          - type: Pods
+            value: 1
+            periodSeconds: 60
+  triggers:
+    - type: temporal
+      metadata:
+        namespace: default
+        taskQueue: billing
+        targetQueueSize: "1"
+        endpoint: "{{ include "temporal.componentname" (list .Subcharts.temporal "frontend") }}:7233"
+{{- end }}

@@ -1,0 +1,226 @@
+# Default values for temporal-scaling-demo
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: "demo"
+fullnameOverride: "demo"
+
+image:
+  pullPolicy: Always
+
+main:
+  worker:
+    replicaCount: 1
+    image:
+      repository: "ghcr.io/temporalio/reference-app-orders-go-worker"
+      tag: "latest"
+    resources:
+      limits:
+        cpu: "100m"
+        memory: "128Mi"
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+
+  api:
+    replicaCount: 1
+    image:
+      repository: "ghcr.io/temporalio/reference-app-orders-go-api"
+      tag: "latest"
+    resources:
+      limits:
+        cpu: "100m"
+        memory: "128Mi"
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+
+billing:
+  worker:
+    replicaCount: 1
+    image:
+      repository: "ghcr.io/temporalio/reference-app-orders-go-worker"
+      tag: "latest"
+    resources:
+      limits:
+        cpu: "100m"
+        memory: "128Mi"
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+
+  api:
+    replicaCount: 1
+    image:
+      repository: "ghcr.io/temporalio/reference-app-orders-go-api"
+      tag: "latest"
+    resources:
+      limits:
+        cpu: "100m"
+        memory: "128Mi"
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+
+web:
+  replicaCount: 1
+  image:
+    repository: "ghcr.io/temporalio/reference-app-orders-web"
+    tag: "latest"
+  resources:
+    limits:
+      cpu: "100m"
+      memory: "128Mi"
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+
+postgresql:
+  fullnameOverride: "temporal-postgresql"
+  auth:
+    username: temporal
+    password: secret
+  primary:
+    extendedConfiguration: |
+      # Connection settings
+      max_connections = 60
+      superuser_reserved_connections = 3
+
+      # Memory settings
+      shared_buffers = 256MB
+      work_mem = 4MB
+      maintenance_work_mem = 64MB
+      effective_cache_size = 640MB
+
+      # CPU settings
+      max_worker_processes = 4
+      max_parallel_workers = 4
+      max_parallel_workers_per_gather = 2
+      max_parallel_maintenance_workers = 2
+
+      # WAL settings
+      wal_buffers = 8MB
+      checkpoint_timeout = 10min
+      max_wal_size = 2GB
+      min_wal_size = 1GB
+      checkpoint_completion_target = 0.9
+      synchronous_commit = on
+
+      # Background writer
+      bgwriter_delay = 200ms
+      bgwriter_lru_maxpages = 300
+      bgwriter_lru_multiplier = 4.0
+
+      # Query planner settings
+      random_page_cost = 1.1
+      effective_io_concurrency = 200
+      default_statistics_target = 100
+
+      # Autovacuum settings - optimized for Temporal's update patterns
+      autovacuum = on
+      autovacuum_max_workers = 2
+      autovacuum_vacuum_threshold = 50
+      autovacuum_analyze_threshold = 50
+      autovacuum_vacuum_scale_factor = 0.05
+      autovacuum_vacuum_cost_delay = 2ms
+
+      # Lock settings - helps with Temporal's concurrent operations
+      deadlock_timeout = 1s
+      max_locks_per_transaction = 128
+    resources:
+      limits:
+        cpu: "4"
+        memory: "1Gi"
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      interval: 10s
+
+temporal:
+  fullnameOverride: "temporal"
+  server:
+    replicaCount: 1
+    config:
+      numHistoryShards: 128
+      namespaces:
+        create: true
+        namespace:
+          - name: default
+      persistence:
+        default:
+          driver: sql
+          sql:
+            driver: postgres12
+            host: "temporal-postgresql"
+            port: 5432
+            user: temporal
+            password: secret
+        visibility:
+          driver: sql
+          sql:
+            driver: postgres12
+            host: "temporal-postgresql"
+            port: 5432
+            user: temporal
+            password: secret
+    dynamicConfig:
+      history.cacheMaxSize:
+      - value: 128
+      history.eventCacheMaxSize:
+      - value: 128
+    metrics:
+      serviceMonitor:
+        enabled: true
+        interval: 10s
+    frontend:
+      resources:
+        requests:
+          cpu: 1
+          memory: "256Mi"
+    history:
+      additionalEnv:
+        - name: GOMAXPROCS
+          value: "2"
+      resources:
+        requests:
+          cpu: 2
+          memory: "1G"
+    matching:
+      resources:
+        requests:
+          cpu: 1
+          memory: "256Mi"
+    worker:
+      resources:
+        requests:
+          cpu: 1
+          memory: "256Mi"
+  mysql:
+    enabled: false
+  postgresql:
+    enabled: true
+  cassandra:
+    enabled: false
+  elasticsearch:
+    enabled: false
+  prometheus:
+    enabled: false
+  grafana:
+    enabled: false
+
+kube-prometheus-stack:
+  fullnameOverride: "kube-prom"
+  enabled: true
+  # By default, kube-prometheus-stack will only look at ServiceMonitors from the same helm release.
+  # Adjust that here so that it sees temporal and our application's ServiceMonitors.
+  prometheus:
+    prometheusSpec:
+      podMonitorSelectorNilUsesHelmValues: false
+      serviceMonitorSelectorNilUsesHelmValues: false
+
+keda:
+  enabled: true
+  image:
+    keda:
+      tag: "main" # Need to use this until they do a release with the Temporal scaler

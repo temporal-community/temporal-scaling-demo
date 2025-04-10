@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "temporal-scaling-demo.fullname" . }}-billing-worker
+  labels:
+    {{- include "temporal-scaling-demo.labels" (list . "billing-worker") | nindent 4 }}
+spec:
+  replicas: {{ .Values.billing.worker.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "temporal-scaling-demo.selectorLabels" (list . "billing-worker") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "temporal-scaling-demo.labels" (list . "billing-worker") | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}-billing-worker
+          image: "{{ .Values.billing.worker.image.repository }}:{{ .Values.billing.worker.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+          args:
+            {{- if .Values.secretKey }}
+            - "-k"
+            - {{ .Values.secretKey }}
+            {{- end }}
+            - "-s"
+            - "billing"
+          env:
+            - name: FRAUD_API_URL
+              value: "http://{{ include "temporal-scaling-demo.fullname" . }}-billing-api:8084"
+            - name: TEMPORAL_ADDRESS
+              value: "{{ include "temporal.componentname" (list .Subcharts.temporal "frontend") }}:7233"
+            - name: TEMPORAL_METRICS_ENDPOINT
+              value: "0.0.0.0:9090"
+          resources:
+            {{- toYaml .Values.billing.worker.resources | nindent 12 }}

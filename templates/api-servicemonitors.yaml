@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "temporal-scaling-demo.fullname" . }}-main-api
+  labels:
+    {{- include "temporal-scaling-demo.labels" (list . "main-api") | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "temporal-scaling-demo.selectorLabels" (list . "main-api") | nindent 6 }}
+  endpoints:
+    - port: metrics
+      interval: 10s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "temporal-scaling-demo.fullname" . }}-billing-api
+  labels:
+    {{- include "temporal-scaling-demo.labels" (list . "billing-api") | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "temporal-scaling-demo.selectorLabels" (list . "billing-api") | nindent 6 }}
+  endpoints:
+    - port: metrics
+      interval: 10s 

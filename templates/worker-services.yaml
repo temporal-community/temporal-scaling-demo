@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "temporal-scaling-demo.fullname" . }}-main-worker-headless
+  labels:
+    {{- include "temporal-scaling-demo.labels" (list . "main-worker") | nindent 4 }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - port: 9090
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
+  selector:
+    {{- include "temporal-scaling-demo.selectorLabels" (list . "main-worker") | nindent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "temporal-scaling-demo.fullname" . }}-billing-worker-headless
+  labels:
+    {{- include "temporal-scaling-demo.labels" (list . "billing-worker") | nindent 4 }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - port: 9090
+      targetPort: metrics
+      protocol: TCP
+      name: metrics
+  selector:
+    {{- include "temporal-scaling-demo.selectorLabels" (list . "billing-worker") | nindent 4 }} 
