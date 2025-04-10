@@ -2,8 +2,8 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-nameOverride: ""
-fullnameOverride: ""
+nameOverride: "demo"
+fullnameOverride: "demo"
 
 image:
   pullPolicy: Always
@@ -82,31 +82,55 @@ postgresql:
     password: secret
   primary:
     extendedConfiguration: |
-      # DB Version: 16
-      # OS Type: linux
-      # DB Type: oltp
-      # Total Memory (RAM): 512 MB
-      # CPUs num: 1
-      # Connections num: 150
-      # Data Storage: ssd
-
+      # Connection settings
       max_connections = 60
-      shared_buffers = 48MB
-      work_mem = 256kB
-      maintenance_work_mem = 16MB
-      wal_buffers = 2MB
-      effective_cache_size = 128MB
+      superuser_reserved_connections = 3
+
+      # Memory settings
+      shared_buffers = 256MB
+      work_mem = 4MB
+      maintenance_work_mem = 64MB
+      effective_cache_size = 640MB
+
+      # CPU settings
+      max_worker_processes = 4
+      max_parallel_workers = 4
+      max_parallel_workers_per_gather = 2
+      max_parallel_maintenance_workers = 2
+
+      # WAL settings
+      wal_buffers = 8MB
+      checkpoint_timeout = 10min
+      max_wal_size = 2GB
+      min_wal_size = 1GB
       checkpoint_completion_target = 0.9
-      default_statistics_target = 100
+      synchronous_commit = on
+
+      # Background writer
+      bgwriter_delay = 200ms
+      bgwriter_lru_maxpages = 300
+      bgwriter_lru_multiplier = 4.0
+
+      # Query planner settings
       random_page_cost = 1.1
       effective_io_concurrency = 200
-      huge_pages = off
-      min_wal_size = 1GB
-      max_wal_size = 4GB
+      default_statistics_target = 100
+
+      # Autovacuum settings - optimized for Temporal's update patterns
+      autovacuum = on
+      autovacuum_max_workers = 2
+      autovacuum_vacuum_threshold = 50
+      autovacuum_analyze_threshold = 50
+      autovacuum_vacuum_scale_factor = 0.05
+      autovacuum_vacuum_cost_delay = 2ms
+
+      # Lock settings - helps with Temporal's concurrent operations
+      deadlock_timeout = 1s
+      max_locks_per_transaction = 128
     resources:
       limits:
-        cpu: "1"
-        memory: "512Mi"
+        cpu: "4"
+        memory: "1Gi"
   metrics:
     enabled: true
     serviceMonitor:
