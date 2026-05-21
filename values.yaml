@@ -221,6 +221,3 @@ kube-prometheus-stack:
 
 keda:
   enabled: true
-  image:
-    keda:
-      tag: "main" # Need to use this until they do a release with the Temporal scaler
