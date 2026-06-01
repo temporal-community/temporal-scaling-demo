@@ -121,7 +121,7 @@ Note that while pre-configured Temporal dashboards aren't included in Grafana, a
 
 ## Troubleshooting
 
-- **Pods taking a long time to be ready**: Cassandra and Elasticsearch can take several minutes to initialize. Future versions may use SQL for faster startup.
+- **Pods taking a long time to be ready**: It can take a while for all services to boot and settle.
 - **No scaling observed**: Ensure you've generated enough load to create a backlog. The scaling threshold is designed to prevent unnecessary scaling for small, temporary backlogs.
 
 ## Clean Up
